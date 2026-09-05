@@ -1,0 +1,658 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>恐龙跑酷小游戏</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden;
+            background-color: #87CEEB;
+            transition: background-color 1.2s ease;
+        }
+
+        .ground {
+            position: absolute;
+            top: 50%;
+            width: 100%;
+            height: 50vh;
+            background-color: #654321;
+            transition: background-color 1.2s ease;
+        }
+
+        .dino {
+            position: absolute;
+            width: 56px;
+            height: 56px;
+            overflow: hidden;
+            z-index: 10;
+        }
+
+        .pixel {
+            position: absolute;
+            background: #228B22;
+            width: 8px;
+            height: 8px;
+        }
+
+        .obstacle {
+            position: absolute;
+            z-index: 6;
+        }
+
+        .cactus-img {
+            width: 24px;
+            height: 48px;
+            background-size: cover;
+            background-repeat: no-repeat;
+            background-position: center;
+            background-color: transparent;
+        }
+
+        .cactus-tall-img {
+            width: 28px;
+            height: 64px;
+            background-size: cover;
+            background-repeat: no-repeat;
+            background-position: center;
+            background-color: transparent;
+        }
+
+        .cactus-wide-img {
+            width: 40px;
+            height: 48px;
+            background-size: cover;
+            background-repeat: no-repeat;
+            background-position: center;
+            background-color: transparent;
+        }
+
+        .bird-img {
+            width: 32px;
+            height: 32px;
+            background-size: cover;
+            background-repeat: no-repeat;
+            background-position: center;
+            background-color: transparent;
+        }
+
+        .pit {
+            width: 80px;
+            height: 48px;
+            background-color: #000000;
+            border-radius: 6px;
+            box-shadow: inset 0 0 8px rgba(0,0,0,0.85), inset 0 12px 24px rgba(0,0,0,0.95);
+        }
+
+        .pit-deep {
+            width: 80px;
+            height: 144px;
+            background-color: #000000;
+            border-radius: 6px;
+            box-shadow: inset 0 0 12px rgba(0,0,0,0.9), inset 0 30px 60px rgba(0,0,0,0.98);
+        }
+
+        .meteor-img {
+            width: 36px;
+            height: 36px;
+            background: #666;
+            border-radius: 50%;
+        }
+
+        .meteor-large-img {
+            width: 52px;
+            height: 52px;
+            background: #444;
+            border-radius: 50%;
+        }
+
+        .score-text {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            font-size: 28px;
+            font-weight: bold;
+            z-index: 20;
+        }
+
+        .game-tip {
+            position: absolute;
+            top: 80px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 26px;
+            font-weight: bold;
+            z-index: 20;
+        }
+
+        .mode-hint {
+            position: absolute;
+            top: 120px;
+            left: 20px;
+            font-size: 20px;
+            color: #b32424;
+            font-weight: bold;
+            z-index: 20;
+        }
+
+        .terrain-name {
+            position: absolute;
+            top: 160px;
+            left: 20px;
+            font-size: 18px;
+            z-index: 20;
+        }
+
+        .scene-layer {
+            position: absolute;
+            inset: 0;
+            overflow: hidden;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .sand {
+            position: absolute;
+            border-radius: 50%;
+        }
+
+        .cloud {
+            position: absolute;
+        }
+
+        @keyframes cloudDrift {
+            0% {
+                transform: translateX(120vw);
+            }
+
+            100% {
+                transform: translateX(-150px);
+            }
+        }
+
+        .shooting-star {
+            position: absolute;
+            transform-origin: left center;
+        }
+
+        @keyframes shootingStar {
+            0% {
+                opacity: 0;
+                transform: rotate(-30deg) translateX(0) translateY(0);
+            }
+
+            10% {
+                opacity: 1;
+            }
+
+            100% {
+                transform: rotate(-30deg) translateX(220px) translateY(130px);
+                opacity: 0;
+            }
+        }
+
+        .bg-meteor {
+            position: absolute;
+        }
+
+        @keyframes bgMeteorFall {
+            0% {
+                transform: translateY(-30px);
+                opacity: 0;
+            }
+
+            8% {
+                opacity: 0.75;
+            }
+
+            100% {
+                transform: translateY(55vh);
+                opacity: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="ground" id="groundDom"></div>
+    <div class="dino" id="dino">
+        <div class="pixel" style="left:24px;top:0"></div>
+        <div class="pixel" style="left:32px;top:0"></div>
+        <div class="pixel" style="left:40px;top:0"></div>
+        <div class="pixel" style="left:24px;top:8px"></div>
+        <div class="pixel" style="left:32px;top:8px"></div>
+        <div class="pixel" style="left:40px;top:8px"></div>
+        <div class="pixel" style="left:48px;top:8px"></div>
+        <div class="pixel" style="left:16px;top:16px"></div>
+        <div class="pixel" style="left:24px;top:16px"></div>
+        <div class="pixel" style="left:32px;top:16px"></div>
+        <div class="pixel" style="left:40px;top:16px"></div>
+        <div class="pixel" style="left:16px;top:24px"></div>
+        <div class="pixel" style="left:24px;top:24px"></div>
+        <div class="pixel" style="left:32px;top:24px"></div>
+        <div class="pixel" style="left:16px;top:32px"></div>
+        <div class="pixel" style="left:32px;top:32px"></div>
+        <div class="pixel" style="left:16px;top:40px"></div>
+        <div class="pixel" style="left:32px;top:40px"></div>
+        <div class="pixel" style="left:16px;top:48px"></div>
+        <div class="pixel" style="left:32px;top:48px"></div>
+        <div class="pixel" style="left:0px;top:24px"></div>
+        <div class="pixel" style="left:8px;top:24px"></div>
+    </div>
+    <div class="score-text" id="score">分数：0</div>
+    <div class="mode-hint" id="modeHint"></div>
+    <div class="terrain-name" id="terrainName"></div>
+    <div class="game-tip" id="tip">点击屏幕开始游戏</div>
+
+    <script>
+        const dino = document.getElementById('dino');
+        const groundDom = document.getElementById('groundDom');
+        const terrainNameDom = document.getElementById('terrainName');
+        const dinoHeight = 56;
+        let groundLine = window.innerHeight / 2;
+        let x = 80;
+        let y = groundLine - dinoHeight;
+        let speedX = 0;
+        let speedY = 0;
+        const moveSpeed = 5;
+        const gravity = 0.6;
+        const jumpPower = -15;
+        let isOnGround = true;
+        let spaceHeld = false;
+        const scoreDom = document.getElementById('score');
+        const modeHintDom = document.getElementById('modeHint');
+        let score = 0;
+        let isSliding = false;
+        let downHeld = false;
+        let fallingIntoPit = false;
+        let waitingRestart = false;
+        let gameRunning = false;
+        const dinoW = 56;
+        const dinoHStand = 56;
+        const dinoHSlide = 28;
+
+        let obstacleList = [];
+        const cactusSpeed = 6;
+        let gameOver = false;
+        const MODE_SCORE_THRESHOLD = 5000;
+
+        let sceneLayer = null;
+        let sandParticles = [];
+
+        //【0草原，1荒漠，2暗夜荒野，3灾变焦土】
+        const terrainTypes = [
+            { name: "草原", minScore: 0, maxScore: 2000, bodyBg: "#87CEEB", groundBg: "#654321", pitBg: "#000000" },
+            { name: "荒漠", minScore: 2000, maxScore: 4000, bodyBg: "#b99b78", groundBg: "#d8b18a", pitBg: "#1a0f0a" },
+            { name: "暗夜荒野", minScore: 4000, maxScore: 5000, bodyBg: "#242b42", groundBg: "#383842", pitBg: "#050510" },
+            { name: "灾变焦土", minScore: 5000, maxScore: 999999, bodyBg: "#4b2222", groundBg: "#2b2020", pitBg: "#100505" }
+        ];
+        let currentTerrain = null;
+
+        const obstacleTypes = [
+            { type: 'cactus', className: 'obstacle cactus-img', w: 24, h: 48, ground: true, image: 'cactus.jpg' },
+            { type: 'cactus-tall', className: 'obstacle cactus-tall-img', w: 28, h: 64, ground: true, image: 'cactus.jpg' },
+            { type: 'cactus-wide', className: 'obstacle cactus-wide-img', w: 40, h: 48, ground: true, image: 'cactus.jpg' },
+            { type: 'bird', className: 'obstacle bird-img', w: 32, h: 32, ground: false, image: 'bird.webp' },
+            { type: 'pit', className: 'obstacle pit', w: 80, h: 48, ground: true, pit: true, depth: 1 },
+            { type: 'pit-deep', className: 'obstacle pit pit-deep', w: 80, h: 144, ground: true, pit: true, depth: 3 },
+            { type: 'meteor', className: 'obstacle meteor-img', w: 36, h: 36, ground: false, meteor: true, image: '' },
+            { type: 'meteor-large', className: 'obstacle meteor-large-img', w: 52, h: 52, ground: false, meteor: true, image: '' }
+        ];
+
+        const obstacleWeightTable = [
+            { index: 0, weight: 35 }, { index: 1, weight: 20 }, { index: 2, weight: 20 },
+            { index: 3, weight: 12 }, { index: 4, weight: 8 }, { index: 5, weight: 5 }
+        ];
+        const meteorWeightTable = [{ index: 6, weight: 70 }, { index: 7, weight: 30 }];
+
+        function getRandomByWeight(weightArr) {
+            let total = 0; for (let i of weightArr) total += i.weight;
+            let r = Math.random() * total; let acc = 0;
+            for (let i of weightArr) { acc += i.weight; if (r <= acc) return i.index; }
+            return weightArr[0].index;
+        }
+
+        function clearSceneLayer() {
+            if (sceneLayer) {
+                sceneLayer.remove();
+                sceneLayer = null;
+            }
+            sandParticles = [];
+        }
+
+        //场景0：草原 云朵
+        function createGrasslandBackground() {
+            clearSceneLayer();
+            sceneLayer = document.createElement('div');
+            sceneLayer.className = 'scene-layer';
+            for (let i = 0; i < 10; i++) {
+                const cloud = document.createElement('div');
+                cloud.className = 'cloud';
+                const dur = 8 + Math.random() * 8;
+                cloud.style.width = (70 + Math.random() * 80) + 'px';
+                cloud.style.height = (35 + Math.random() * 40) + 'px';
+                cloud.style.background = 'white';
+                cloud.style.borderRadius = '40px';
+                cloud.style.top = (3 + Math.random() * 40) + '%';
+                cloud.style.left = (Math.random() * 100) + '%';
+                cloud.style.opacity = '0.75';
+                cloud.style.animation = `cloudDrift ${dur}s linear infinite`;
+                sceneLayer.appendChild(cloud);
+            }
+            document.body.appendChild(sceneLayer);
+        }
+
+        //场景1：荒漠 JS风沙粒子
+        function createDesertBackground() {
+            clearSceneLayer();
+            sceneLayer = document.createElement('div');
+            sceneLayer.className = 'scene-layer';
+            const count = 400;
+            sandParticles = [];
+            for (let i = 0; i < count; i++) {
+                const el = document.createElement('div');
+                el.className = 'sand';
+                const size = 0.6 + Math.random() * 1.8;
+                el.style.width = size + 'px';
+                el.style.height = size + 'px';
+                el.style.background = `rgba(255,227,186,${0.45 + Math.random() * 0.4})`;
+                const x = Math.random() * window.innerWidth;
+                const y = Math.random() * (window.innerHeight * 0.5);
+                const speed = 1.2 + Math.random() * 3.2;
+                el.style.left = x + 'px';
+                el.style.top = y + 'px';
+                sceneLayer.appendChild(el);
+                sandParticles.push({ el, x, y, speed, size });
+            }
+            document.body.appendChild(sceneLayer);
+            tickSand();
+        }
+
+        function tickSand() {
+            if (!sceneLayer || sandParticles.length === 0) return;
+            const w = window.innerWidth;
+            const h = window.innerHeight * 0.5;
+            for (let p of sandParticles) {
+                p.x -= p.speed;
+                p.y += 0.12;
+                if (p.x < -10) {
+                    p.x = w + 20;
+                    p.y = Math.random() * h;
+                }
+                if (p.y > h) {
+                    p.y = Math.random() * h * 0.3;
+                }
+                p.el.style.left = p.x + 'px';
+                p.el.style.top = p.y + 'px';
+            }
+            requestAnimationFrame(tickSand);
+        }
+
+        //场景2：暗夜荒野【按键3】星空+流星
+        function createWildernessBackground() {
+            clearSceneLayer();
+            sceneLayer = document.createElement('div');
+            sceneLayer.className = 'scene-layer';
+            //静态星星
+            for (let i = 0; i < 80; i++) {
+                const dot = document.createElement('div');
+                dot.style.position = 'absolute';
+                dot.style.width = '2px';
+                dot.style.height = '2px';
+                dot.style.background = '#ffffff';
+                dot.style.borderRadius = '50%';
+                dot.style.top = (Math.random() * 100) + '%';
+                dot.style.left = (Math.random() * 100) + '%';
+                dot.style.opacity = (0.25 + Math.random() * 0.75);
+                sceneLayer.appendChild(dot);
+            }
+            //流星
+            for (let i = 0; i < 6; i++) {
+                const star = document.createElement('div');
+                star.className = 'shooting-star';
+                star.style.width = '90px';
+                star.style.height = '2px';
+                star.style.background = 'linear-gradient(to right,#ffffff,transparent)';
+                star.style.top = (Math.random() * 75) + '%';
+                star.style.left = (Math.random() * 65) + '%';
+                star.style.transformOrigin = 'left center';
+                star.style.transform = 'rotate(-30deg)';
+                star.style.animation = `shootingStar 2.8s ease-in infinite`;
+                star.style.animationDelay = (i * 1.4) + 's';
+                sceneLayer.appendChild(star);
+            }
+            document.body.appendChild(sceneLayer);
+        }
+
+        //场景3：灾变焦土【按键4】降落熔岩陨石
+        function createScorchedBackground() {
+            clearSceneLayer();
+            sceneLayer = document.createElement('div');
+            sceneLayer.className = 'scene-layer';
+            for (let i = 0; i < 16; i++) {
+                const bgMeteor = document.createElement('div');
+                bgMeteor.className = 'bg-meteor';
+                const size = 6 + Math.random() * 12;
+                bgMeteor.style.width = size + 'px';
+                bgMeteor.style.height = size + 'px';
+                bgMeteor.style.background = '#553333';
+                bgMeteor.style.borderRadius = '50%';
+                bgMeteor.style.boxShadow = '0 0 8px #aa4422';
+                bgMeteor.style.left = (Math.random() * 100) + '%';
+                bgMeteor.style.animation = `bgMeteorFall ${3 + Math.random() * 4}s linear infinite`;
+                bgMeteor.style.animationDelay = (Math.random() * 2.5) + 's';
+                sceneLayer.appendChild(bgMeteor);
+            }
+            document.body.appendChild(sceneLayer);
+        }
+
+        function setTerrainByIndex(idx) {
+            const target = terrainTypes[idx];
+            if (!target) return;
+            currentTerrain = target;
+            document.body.style.backgroundColor = target.bodyBg;
+            groundDom.style.backgroundColor = target.groundBg;
+            terrainNameDom.innerText = "地形：" + target.name;
+            switch (idx) {
+                case 0: createGrasslandBackground(); break;
+                case 1: createDesertBackground(); break;
+                case 2: createWildernessBackground(); break;
+                case 3: createScorchedBackground(); break;
+            }
+            obstacleList.forEach(obs => {
+                if (obs.pit && obs.dom) {
+                    obs.dom.style.backgroundColor = target.pitBg;
+                }
+            });
+        }
+
+        function updateTerrain() {
+            let target = terrainTypes.find(t => score >= t.minScore && score < t.maxScore) || terrainTypes[0];
+            if (currentTerrain === target) return;
+            const idx = terrainTypes.indexOf(target);
+            setTerrainByIndex(idx);
+        }
+
+        function updatePos() {
+            let currentHeight = isSliding ? dinoHSlide : dinoHStand;
+            if (isOnGround && !fallingIntoPit) {
+                y = groundLine - currentHeight;
+            }
+            dino.style.left = x + 'px';
+            dino.style.top = y + 'px';
+            dino.style.height = currentHeight + "px";
+        }
+
+        function spawnObstacle() {
+            if (gameOver || !gameRunning) return;
+            if (score >= MODE_SCORE_THRESHOLD) {
+                const idx = getRandomByWeight(meteorWeightTable);
+                const t = obstacleTypes[idx];
+                const obs = document.createElement('div');
+                obs.className = t.className;
+                if (t.image) obs.style.backgroundImage = `url(${t.image})`;
+                const rx = Math.random() * (window.innerWidth - t.w);
+                obs.style.left = rx + 'px';
+                obs.style.top = (-t.h) + 'px';
+                document.body.appendChild(obs);
+                obstacleList.push({
+                    dom: obs, x: rx, y: -t.h, w: t.w, h: t.h, type: t.type, meteor: true, pit: false,
+                    vy: t.type === 'meteor-large' ? 6 + Math.random() * 2 : 4 + Math.random() * 2
+                });
+            } else {
+                const idx = getRandomByWeight(obstacleWeightTable);
+                const t = obstacleTypes[idx];
+                const obs = document.createElement('div');
+                obs.className = t.className;
+                if (t.image) {
+                    obs.style.backgroundImage = `url(${t.image})`;
+                }
+                if (t.pit && currentTerrain) {
+                    obs.style.backgroundColor = currentTerrain.pitBg;
+                }
+                let cy;
+                if (t.pit) {
+                    cy = groundLine;
+                } else if (t.ground) {
+                    cy = groundLine - t.h;
+                } else {
+                    const r = Math.random();
+                    cy = r < 0.33 ? groundLine - 64 : r < 0.66 ? groundLine - 94 : groundLine - 134;
+                }
+                obs.style.top = cy + 'px';
+                obs.style.left = window.innerWidth + 'px';
+                document.body.appendChild(obs);
+                obstacleList.push({
+                    dom: obs, x: window.innerWidth, y: cy, w: t.w, h: t.h, type: t.type, pit: t.pit || false, meteor: false
+                });
+            }
+        }
+
+        function isCollision(a, b) {
+            let dh = isSliding ? dinoHSlide : dinoHStand;
+            if (b.pit) {
+                return a.x < b.x + b.w && a.x + dinoW > b.x && (a.y + dh) >= groundLine - 8;
+            }
+            return a.x < b.x + b.w && a.x + dinoW > b.x && a.y < b.y + b.h && a.y + dh > b.y;
+        }
+
+        function updateScoreUI() {
+            let hs = Number(localStorage.getItem("dinoHighScore") || 0);
+            scoreDom.innerText = `分数：${score}  最高分：${hs}`;
+            modeHintDom.innerText = score >= MODE_SCORE_THRESHOLD ? "⚠️陨石模式！躲避从天而降的陨石" : "";
+        }
+
+        function gameEnd(reasonText) {
+            gameOver = true; gameRunning = false; waitingRestart = true;
+            let hs = Number(localStorage.getItem("dinoHighScore") || 0);
+            if (score > hs) { hs = score; localStorage.setItem("dinoHighScore", hs); }
+            document.getElementById('tip').innerText = `${reasonText}｜分数：${score}，最高分：${hs}\n点击屏幕重新开始`;
+            document.getElementById('tip').style.display = 'block';
+        }
+
+        function restartGame() {
+            gameOver = false; waitingRestart = false; gameRunning = true;
+            fallingIntoPit = false; isOnGround = true; spaceHeld = false; downHeld = false; isSliding = false;
+            x = 80; y = groundLine - dinoHeight; speedX = 0; speedY = 0; score = 0; currentTerrain = null;
+            obstacleList.forEach(o => o.dom && o.dom.remove()); obstacleList = [];
+            document.getElementById('tip').style.display = 'none';
+            updateTerrain(); updatePos(); updateScoreUI(); loop();
+        }
+
+        document.body.addEventListener('click', () => {
+            if (!gameRunning || waitingRestart) restartGame();
+        });
+
+        const keys = {};
+        window.addEventListener('keydown', e => {
+            keys[e.code] = true;
+            if (e.code === 'ArrowDown') downHeld = true;
+            if (e.key === '1') setTerrainByIndex(0);
+            if (e.key === '2') setTerrainByIndex(1);
+            if (e.key === '3') setTerrainByIndex(2);
+            if (e.key === '4') setTerrainByIndex(3);
+        });
+        window.addEventListener('keyup', e => {
+            keys[e.code] = false;
+            if (e.code === 'ArrowUp') spaceHeld = false;
+            if (e.code === 'ArrowDown') downHeld = false;
+        });
+        window.addEventListener('blur', () => { downHeld = false; spaceHeld = false; });
+
+        function loop() {
+            if (!gameRunning || gameOver) return;
+            speedX = 0;
+            if (keys['ArrowLeft']) speedX = -moveSpeed;
+            if (keys['ArrowRight']) speedX = moveSpeed;
+            if (!fallingIntoPit) {
+                if (keys['ArrowUp'] && isOnGround && !spaceHeld) {
+                    speedY = jumpPower; isOnGround = false; spaceHeld = true;
+                }
+                isSliding = !!downHeld && isOnGround;
+            }
+            speedY += gravity;
+            x += speedX; y += speedY;
+            const curH = isSliding ? dinoHSlide : dinoHStand;
+            if (!fallingIntoPit) {
+                if (y + curH >= groundLine) {
+                    y = groundLine - curH;
+                    speedY = 0; isOnGround = true;
+                }
+            }
+            updatePos();
+            score += 1;
+            updateScoreUI();
+            updateTerrain();
+            for (let i = obstacleList.length - 1; i >= 0; i--) {
+                const c = obstacleList[i];
+                if (c.meteor) {
+                    c.y += c.vy;
+                } else {
+                    c.x -= cactusSpeed;
+                }
+                c.dom.style.left = c.x + 'px';
+                c.dom.style.top = c.y + 'px';
+                if (isCollision({ x: x, y: y }, c)) {
+                    if (c.pit) {
+                        fallingIntoPit = true; isOnGround = false; speedY = 4;
+                    } else if (c.meteor) {
+                        gameEnd("被陨石砸中！");
+                        return;
+                    } else {
+                        let r = "撞到障碍物";
+                        if (c.type === 'bird') r = "被鸟撞到了";
+                        gameEnd(r);
+                        return;
+                    }
+                }
+                let remove = false;
+                if (c.meteor) {
+                    if (c.y > window.innerHeight) remove = true;
+                } else {
+                    if (c.x + c.w < 0) remove = true;
+                }
+                if (remove) {
+                    c.dom.remove();
+                    obstacleList.splice(i, 1);
+                }
+            }
+            if (fallingIntoPit && y > window.innerHeight) {
+                gameEnd("掉进坑里了！");
+                return;
+            }
+            requestAnimationFrame(loop);
+        }
+
+        updateTerrain(); updateScoreUI();
+        setInterval(spawnObstacle, 800);
+        updatePos();
+    </script>
+</body>
+</html>
