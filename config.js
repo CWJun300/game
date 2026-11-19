@@ -1,3 +1,9 @@
+// 素材统一用相对路径（不要带前导 /），dev、dist、子目录部署都能正确解析
+export const IMG = {
+    cactus: 'assets/cactus.jpg',
+    bird: 'assets/bird.webp'
+};
+
 export const GAME_CONFIG = {
     dinoW: 56,
     dinoHStand: 56,
@@ -17,10 +23,10 @@ export const GAME_CONFIG = {
     ],
 
     obstacleTypes: [
-        { type: 'cactus', className: 'obstacle cactus-img', w: 24, h: 48, ground: true, image: '/assets/cactus.jpg' },
-        { type: 'cactus-tall', className: 'obstacle cactus-tall-img', w: 28, h: 64, ground: true, image: '/assets /cactus.jpg' },
-        { type: 'cactus-wide', className: 'obstacle cactus-wide-img', w: 40, h: 48, ground: true, image: '/assets/cactus.jpg' },
-        { type: 'bird', className: 'obstacle bird-img', w: 32, h: 32, ground: false, image: '/assets/bird.webp' },
+        { type: 'cactus', className: 'obstacle cactus-img', w: 24, h: 48, ground: true, image: IMG.cactus },
+        { type: 'cactus-tall', className: 'obstacle cactus-tall-img', w: 28, h: 64, ground: true, image: IMG.cactus },
+        { type: 'cactus-wide', className: 'obstacle cactus-wide-img', w: 40, h: 48, ground: true, image: IMG.cactus },
+        { type: 'bird', className: 'obstacle bird-img', w: 32, h: 32, ground: false, image: IMG.bird },
         { type: 'pit', className: 'obstacle pit', w: 80, h: 48, ground: true, pit: true, depth: 1 },
         { type: 'pit-deep', className: 'obstacle pit pit-deep', w: 80, h: 144, ground: true, pit: true, depth: 3 },
         { type: 'meteor', className: 'obstacle meteor-img', w: 36, h: 36, ground: false, meteor: true, image: '' },

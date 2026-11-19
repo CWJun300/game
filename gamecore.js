@@ -1,6 +1,6 @@
 import { GAME_CONFIG } from "./config.js";
 import { getRandomByWeight, isCollision } from "./utils.js";
-import { updateTerrain, setTerrainByIndex } from "./scene.js";
+import { updateTerrain } from "./scene.js";
 
 //全局游戏状态
 export const gameState = {
@@ -91,9 +91,10 @@ export function gameEnd(reasonText, gameState, dom) {
     gameState.waitingRestart = true;
     if (gameState.spawnTimer) clearInterval(gameState.spawnTimer);
 
-    const hs = Number(localStorage.getItem("dinoHighScore") || 0);
+    let hs = Number(localStorage.getItem("dinoHighScore") || 0);
     if (gameState.score > hs) {
-        localStorage.setItem("dinoHighScore", gameState.score);
+        hs = gameState.score;
+        localStorage.setItem("dinoHighScore", hs);
     }
     dom.tipDom.innerText = `${reasonText}｜分数：${gameState.score}，最高分：${hs}\n点击屏幕重新开始`;
     dom.tipDom.style.display = 'block';
@@ -137,7 +138,7 @@ export function loop(gameState, dom) {
     if (keys['ArrowRight']) gameState.speedX = GAME_CONFIG.moveSpeed;
 
     if (!gameState.fallingIntoPit) {
-        if (keys['ArrowUp'] && gameState.isOnGround && !gameState.spaceHeld) {
+        if ((keys['ArrowUp'] || keys['Space']) && gameState.isOnGround && !gameState.spaceHeld) {
             gameState.speedY = GAME_CONFIG.jumpPower;
             gameState.isOnGround = false;
             gameState.spaceHeld = true;
@@ -208,16 +209,19 @@ export function loop(gameState, dom) {
 
 export function initInput(gameState) {
     gameState.keyMap = {};
+    const CONTROL_KEYS = ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Space'];
     window.addEventListener('keydown', e => {
+        if (CONTROL_KEYS.includes(e.code)) e.preventDefault();
         gameState.keyMap[e.code] = true;
         if (e.code === 'ArrowDown') gameState.downHeld = true;
     });
     window.addEventListener('keyup', e => {
         gameState.keyMap[e.code] = false;
-        if (e.code === 'ArrowUp') gameState.spaceHeld = false;
+        if (e.code === 'ArrowUp' || e.code === 'Space') gameState.spaceHeld = false;
         if (e.code === 'ArrowDown') gameState.downHeld = false;
     });
     window.addEventListener('blur', () => {
+        gameState.keyMap = {};
         gameState.downHeld = false;
         gameState.spaceHeld = false;
     });

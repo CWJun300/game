@@ -1,5 +1,6 @@
 import { gameState, restartGame, updatePos, updateScoreUI, initInput } from "./gamecore.js";
-import { updateTerrain, setTerrainByIndex } from "./scene.js";
+import { updateTerrain } from "./scene.js";
+import { GAME_CONFIG } from "./config.js";
 
 document.addEventListener('DOMContentLoaded', () => {
     const dom = {
@@ -20,12 +21,15 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    //调试地形快捷键
+    //调试地形快捷键：直接把分数拨到该地形区间，否则会被 updateTerrain 每帧按分数覆盖回去
     window.addEventListener('keydown', e => {
-        if (e.key === '1') setTerrainByIndex(0, gameState, dom);
-        if (e.key === '2') setTerrainByIndex(1, gameState, dom);
-        if (e.key === '3') setTerrainByIndex(2, gameState, dom);
-        if (e.key === '4') setTerrainByIndex(3, gameState, dom);
+        const idx = ['1', '2', '3', '4'].indexOf(e.key);
+        if (idx < 0) return;
+        const target = GAME_CONFIG.terrainTypes[idx];
+        if (!target) return;
+        gameState.score = target.minScore;
+        updateTerrain(gameState, dom);
+        updateScoreUI(gameState, dom);
     });
 
     updateTerrain(gameState, dom);

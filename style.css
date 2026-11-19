@@ -73,7 +73,7 @@ body {
     height: 32px;
     background-size: cover;
     background-repeat: no-repeat;
-    background-position: center;
+    background-position: left center;
     background-color: transparent;
 }
 
@@ -124,6 +124,22 @@ body {
     font-size: 26px;
     font-weight: bold;
     z-index: 20;
+    white-space: pre-line;
+    text-align: center;
+    max-width: 92vw;
+}
+
+.key-hint {
+    position: absolute;
+    bottom: 14px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 14px;
+    color: #fff;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.65);
+    z-index: 20;
+    white-space: nowrap;
+    pointer-events: none;
 }
 
 .mode-hint {
